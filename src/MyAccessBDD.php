@@ -295,7 +295,7 @@ class MyAccessBDD extends AccessBDD
     }
 
     /**
-     * récupère tous les commandes d'un document
+     * récupère toutes les commandes d'un document
      * @param array|null $champs 
      * @return array|null
      */
