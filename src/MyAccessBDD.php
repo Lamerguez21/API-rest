@@ -51,6 +51,12 @@ class MyAccessBDD extends AccessBDD
                 return $this->selectExemplairesRevue($champs);
             case "commandedocument":
                 return $this->selectAllCommandesDocument($champs);
+            case "abonnement":
+                return $this->selectAllCommandesRevue($champs);
+            case "echeance" :
+                return $this->selectAllEcheanceAbonnement();
+            case "utilisateur":
+                return $this->selectUser($champs);
             case "":
                 // return $this->uneFonction(parametres);
             default:
@@ -312,6 +318,60 @@ class MyAccessBDD extends AccessBDD
         $requete .= "FROM commandedocument l JOIN suivi s ON s.id = l.idSuivi JOIN commande c ON l.id = c.id ";      
         $requete .= "WHERE l.idLivreDvd = :id ";
         $requete .= "ORDER BY dateCommande DESC "; 
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
+
+    /**
+     * récupère toutes les commandes d'une revue
+     * @param array|null $champs 
+     * @return array|null
+     */
+    private function selectAllCommandesRevue(?array $champs): ?array
+    {
+        if (empty($champs)) {
+            return null;
+        }
+        if (!array_key_exists('id', $champs)) {
+            return null;
+        }
+        $champNecessaire['id'] = $champs['id'];
+        $requete = "SELECT a.id ,a.dateFinAbonnement, a.idRevue, c.dateCommande, c.montant ";
+        $requete .= "FROM abonnement a JOIN commande c ON a.id = c.id ";      
+        $requete .= "WHERE a.idRevue = :id ";
+        $requete .= "ORDER BY dateCommande DESC ";
+        return $this->conn->queryBDD($requete, $champNecessaire);
+    }
+
+    /**
+     * récupère tous les abonnemnts qui expirent dans moins de 30 jours
+     * @return array|null
+     */
+    private function selectAllEcheanceAbonnement(): ?array
+    {
+        $requete = "SELECT d.titre, a.dateFinAbonnement ";
+        $requete .= "FROM abonnement a JOIN revue r ON a.idRevue = r.id JOIN document d ON r.id = d.id ";      
+        $requete .= "WHERE DATEDIFF(CURRENT_DATE(), a.dateFinAbonnement) < 30 ";
+        $requete .= "ORDER BY a.dateFinAbonnement ASC ";
+        return $this->conn->queryBDD($requete);
+    }
+
+    /**
+     * récupère l'utilisateur d'un login
+     * @param array|null $champs 
+     * @return array|null
+     */
+    private function selectUser(?array $champs): ?array
+    {
+        if (empty($champs)) {
+            return null;
+        }
+        if (!array_key_exists('login', $champs)) {
+            return null;
+        }
+        $champNecessaire['login'] = $champs['login'];
+        $requete = "SELECT u.login, u.password, u.idService ";
+        $requete .= "FROM utilisateur u ";      
+        $requete .= "WHERE u.login = :login ";
         return $this->conn->queryBDD($requete, $champNecessaire);
     }
 }
